@@ -23,26 +23,34 @@ public class Cliente {
         try (Socket client = new Socket(address, port)) {
             System.out.printf("Conexão estabelecida com o SERVIDOR: %s:%d%n", address, port);
 
-            // Usar PrintWriter para enviar mensagens e BufferedReader para receber
             PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
             BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
+            // Thread para ouvir o servidor
+            Thread listener = new Thread(() -> {
+                try {
+                    String serverMessage;
+                    while ((serverMessage = reader.readLine()) != null) {
+                        System.out.println("\n[SERVIDOR >] " + serverMessage);
+                        System.out.print("CLIENTE > "); // reaparece o prompt de entrada
+                    }
+                } catch (IOException e) {
+                    System.out.println("Conexão encerrada pelo servidor.");
+                }
+            });
+            listener.start();
+
+            // Thread principal envia mensagens
             while (true) {
                 System.out.print("CLIENTE > ");
                 String message = scanner.nextLine();
 
                 if (message.equalsIgnoreCase("SAIR")) {
-                    System.out.println("Comando 'SAIR' foi recebido. Encerrando Cliente.");
+                    System.out.println("Encerrando cliente...");
                     break;
                 }
 
-                writer.println(message); // envia a mensagem com quebra de linha
-                String response = reader.readLine(); // lê a resposta do servidor
-                if (response == null) {
-                    System.out.println("Servidor desconectado.");
-                    break;
-                }
-                System.out.println(response);
+                writer.println(message);
             }
 
         } catch (IOException e) {
