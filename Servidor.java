@@ -37,7 +37,7 @@ public class Servidor {
                             }
                             System.exit(0);
                         }
-                        System.out.println("[Você] SERVIDOR: " + serverMessage); // Mostra no próprio console
+                        System.out.println("[Você] SERVIDOR: " + serverMessage);
                         broadcastMessage("SERVIDOR: " + serverMessage);
                     }
                 });
@@ -92,3 +92,22 @@ public class Servidor {
             try {
                 while ((clientMessage = reader.readLine()) != null) {
                     String fullMessage = "CLIENTE " + clientSocket.getRemoteSocketAddress() + ": " + clientMessage;
+                    System.out.println(fullMessage);
+                    broadcastMessage(fullMessage);
+                }
+            } catch (IOException e) {
+                System.out.println("Cliente " + clientSocket.getRemoteSocketAddress() + " desconectou-se.");
+            } finally {
+                if (writer != null) {
+                    clientWriters.remove(writer);
+                }
+                try {
+                    if (clientSocket != null) clientSocket.close();
+                } catch (IOException e) {
+                    System.err.println("Erro ao fechar o socket do cliente: " + e.getMessage());
+                }
+                broadcastMessage("Cliente " + clientSocket.getRemoteSocketAddress() + " saiu do chat.");
+            }
+        }
+    }
+}
