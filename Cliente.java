@@ -1,7 +1,6 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -10,51 +9,50 @@ public class Cliente {
         System.out.println("---- CLIENTE DE CHAT ----");
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Digite o endereço do servidor (deixe em branco para 'localhost'): ");
+        System.out.print("Digite o endereço do servidor (deixe em branco para localhost): ");
         String address = scanner.nextLine();
-        if (address.isEmpty()) {
-            address = "localhost";
-        }
+        if (address.isEmpty()) address = "localhost";
 
-        System.out.print("Digite a porta do servidor (deixe em branco para '10000'): ");
+        System.out.print("Digite a porta do servidor (deixe em branco para 10000): ");
         String portInput = scanner.nextLine();
         int port = portInput.isEmpty() ? 10000 : Integer.parseInt(portInput);
 
         try (Socket client = new Socket(address, port)) {
-            System.out.printf("Conexão estabelecida com o SERVIDOR: %s:%d%n", address, port);
+            System.out.printf("Conectado ao servidor em %s:%d%n", address, port);
 
-            PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            OutputStream out = client.getOutputStream();
+            InputStream in = client.getInputStream();
 
-            // Thread para ouvir o servidor
-            Thread listener = new Thread(() -> {
+            Thread receiver = new Thread(() -> {
                 try {
-                    String serverMessage;
-                    while ((serverMessage = reader.readLine()) != null) {
-                        System.out.println("\n[SERVIDOR >] " + serverMessage);
-                        System.out.print("CLIENTE > "); // reaparece o prompt de entrada
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        String message = new String(buffer, 0, bytesRead);
+                        System.out.println("\n" + message);
+                        System.out.print("[Você] ");
                     }
                 } catch (IOException e) {
                     System.out.println("Conexão encerrada pelo servidor.");
                 }
             });
-            listener.start();
+            receiver.start();
 
-            // Thread principal envia mensagens
             while (true) {
-                System.out.print("CLIENTE > ");
+                System.out.print("[Você] ");
                 String message = scanner.nextLine();
 
-                if (message.equalsIgnoreCase("SAIR")) {
-                    System.out.println("Encerrando cliente...");
+                if (message.equalsIgnoreCase("sair")) {
+                    System.out.println("Encerrando cliente.");
                     break;
                 }
 
-                writer.println(message);
+                out.write(message.getBytes());
+                out.flush();
             }
 
         } catch (IOException e) {
-            System.err.println("Erro de comunicação com o servidor: " + e.getMessage());
+            System.out.println("Erro ao conectar: " + e.getMessage());
         }
 
         scanner.close();

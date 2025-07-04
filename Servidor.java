@@ -21,28 +21,23 @@ public class Servidor {
             int port = Integer.parseInt(scanner.nextLine());
 
             try (ServerSocket serverSocket = new ServerSocket(port)) {
-                System.out.println("Servidor iniciado. Aguardando conexões de clientes na porta " + port + "...");
+                System.out.println("Servidor iniciado na porta " + port + ".");
 
-                Thread serverInputThread = new Thread(() -> {
-                    String serverMessage;
+                // Thread para entrada de mensagens do servidor
+                Thread inputThread = new Thread(() -> {
                     while (true) {
-                        serverMessage = scanner.nextLine();
-                        if (serverMessage.equalsIgnoreCase("SAIR")) {
-                            System.out.println("Comando 'SAIR' recebido. Encerrando o servidor.");
-                            broadcastMessage("SERVIDOR: Servidor está sendo encerrado. Desconectando todos os clientes.");
-                            try {
-                                serverSocket.close();
-                            } catch (IOException e) {
-                                System.err.println("Erro ao fechar o ServerSocket: " + e.getMessage());
-                            }
+                        String message = scanner.nextLine();
+                        if (message.equalsIgnoreCase("sair")) {
+                            broadcastMessage("Servidor desconectou todos.");
                             System.exit(0);
                         }
-                        System.out.println("[Você] SERVIDOR: " + serverMessage);
-                        broadcastMessage("SERVIDOR: " + serverMessage);
+                        System.out.println("[Você] " + message);
+                        broadcastMessage("Servidor: " + message);
                     }
                 });
-                serverInputThread.start();
+                inputThread.start();
 
+                // Aguarda clientes
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Cliente conectado: " + clientSocket.getRemoteSocketAddress());
@@ -50,63 +45,55 @@ public class Servidor {
                 }
 
             } catch (IOException e) {
-                System.out.println("Servidor encerrado ou ocorreu um erro de I/O: " + e.getMessage());
+                System.out.println("Erro no servidor: " + e.getMessage());
             }
 
         } catch (NumberFormatException e) {
-            System.err.println("Erro: Porta inválida. Por favor, insira um número.");
+            System.out.println("Porta inválida.");
         }
     }
 
     private static void broadcastMessage(String message) {
-        for (PrintWriter writer : new ArrayList<>(clientWriters)) {
-            try {
+        synchronized (clientWriters) {
+            for (PrintWriter writer : clientWriters) {
                 writer.println(message);
-            } catch (Exception e) {
-                System.err.println("Erro ao enviar mensagem para um cliente (provavelmente desconectado): " + e.getMessage());
             }
         }
     }
 
     private static class ClientHandler extends Thread {
         private Socket clientSocket;
-        private PrintWriter writer;
         private BufferedReader reader;
+        private PrintWriter writer;
 
         public ClientHandler(Socket socket) {
             this.clientSocket = socket;
             try {
-                writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                writer = new PrintWriter(socket.getOutputStream(), true);
             } catch (IOException e) {
-                System.err.println("Erro ao configurar streams para o cliente: " + e.getMessage());
+                System.err.println("Erro ao configurar cliente: " + e.getMessage());
             }
         }
 
-        @Override
         public void run() {
             clientWriters.add(writer);
-            broadcastMessage("Novo cliente conectado: " + clientSocket.getRemoteSocketAddress());
-
-            String clientMessage;
             try {
-                while ((clientMessage = reader.readLine()) != null) {
-                    String fullMessage = "CLIENTE " + clientSocket.getRemoteSocketAddress() + ": " + clientMessage;
-                    System.out.println(fullMessage);
-                    broadcastMessage(fullMessage);
+                String message;
+                while ((message = reader.readLine()) != null) {
+                    String formatted = "Cliente: " + message;
+                    System.out.println(formatted);
+                    broadcastMessage(formatted);
                 }
             } catch (IOException e) {
-                System.out.println("Cliente " + clientSocket.getRemoteSocketAddress() + " desconectou-se.");
+                System.out.println("Cliente desconectado: " + clientSocket.getRemoteSocketAddress());
             } finally {
-                if (writer != null) {
-                    clientWriters.remove(writer);
-                }
+                clientWriters.remove(writer);
                 try {
-                    if (clientSocket != null) clientSocket.close();
+                    clientSocket.close();
                 } catch (IOException e) {
-                    System.err.println("Erro ao fechar o socket do cliente: " + e.getMessage());
+                    System.out.println("Erro ao fechar conexão com cliente.");
                 }
-                broadcastMessage("Cliente " + clientSocket.getRemoteSocketAddress() + " saiu do chat.");
             }
         }
     }
