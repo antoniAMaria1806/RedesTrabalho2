@@ -1,41 +1,41 @@
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Cliente {
     public static void main(String[] args) {
-        System.out.println("---- CLIENTE DE CHAT ----");
         Scanner scanner = new Scanner(System.in);
+        System.out.println("---- CLIENTE DE CHAT ----");
 
-        System.out.print("Digite o endereço do servidor (deixe em branco para localhost): ");
-        String address = scanner.nextLine();
+        System.out.print("Endereço do servidor (vazio para localhost): ");
+        String address = scanner.nextLine().trim();
         if (address.isEmpty()) address = "localhost";
 
-        System.out.print("Digite a porta do servidor (deixe em branco para 10000): ");
-        String portInput = scanner.nextLine();
+        System.out.print("Porta do servidor (vazio para 10000): ");
+        String portInput = scanner.nextLine().trim();
         int port = portInput.isEmpty() ? 10000 : Integer.parseInt(portInput);
 
-        try (Socket client = new Socket(address, port)) {
-            System.out.printf("Conectado ao servidor em %s:%d%n", address, port);
+        try (Socket socket = new Socket(address, port);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
 
-            OutputStream out = client.getOutputStream();
-            InputStream in = client.getInputStream();
-
+            // Thread para receber mensagens do servidor
             Thread receiver = new Thread(() -> {
+                String message;
                 try {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = in.read(buffer)) != -1) {
-                        String message = new String(buffer, 0, bytesRead);
-                        System.out.print("\n" + message);
+                    while ((message = in.readLine()) != null) {
+                        System.out.println("[Servidor] " + message);
                         System.out.print("[Você] ");
                     }
                 } catch (IOException e) {
                     System.out.println("Conexão encerrada pelo servidor.");
                 }
             });
+            receiver.setDaemon(true);
             receiver.start();
 
             while (true) {
@@ -47,13 +47,11 @@ public class Cliente {
                     break;
                 }
 
-                // CORRIGIDO: envia com quebra de linha
-                out.write((message + "\n").getBytes());
-                out.flush();
+                out.println(message);  // envia mensagem para o servidor
             }
 
         } catch (IOException e) {
-            System.out.println("Erro ao conectar: " + e.getMessage());
+            System.err.println("Erro: " + e.getMessage());
         }
 
         scanner.close();
