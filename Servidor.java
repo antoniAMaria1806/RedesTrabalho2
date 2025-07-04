@@ -28,16 +28,20 @@ public class Servidor {
                     while (true) {
                         String message = scanner.nextLine();
                         if (message.equalsIgnoreCase("sair")) {
-                            broadcastMessage("Servidor desconectou todos.");
+                            broadcastMessage("Servidor: Servidor desconectando todos.");
                             System.exit(0);
                         }
+                        // Exibe apenas uma vez a mensagem do servidor no console
                         System.out.println("[Você] " + message);
+
+                        // Envia só para os clientes
                         broadcastMessage("Servidor: " + message);
                     }
                 });
+                inputThread.setDaemon(true);
                 inputThread.start();
 
-                // Aguarda clientes
+                // Aguarda conexões dos clientes
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Cliente conectado: " + clientSocket.getRemoteSocketAddress());

@@ -29,7 +29,7 @@ public class Cliente {
                     int bytesRead;
                     while ((bytesRead = in.read(buffer)) != -1) {
                         String message = new String(buffer, 0, bytesRead);
-                        System.out.println("\n" + message);
+                        System.out.print("\n" + message);
                         System.out.print("[Você] ");
                     }
                 } catch (IOException e) {
@@ -47,7 +47,8 @@ public class Cliente {
                     break;
                 }
 
-                out.write(message.getBytes());
+                // CORRIGIDO: envia com quebra de linha
+                out.write((message + "\n").getBytes());
                 out.flush();
             }
 
