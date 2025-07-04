@@ -29,7 +29,7 @@ public class Cliente {
                 try {
                     while ((message = in.readLine()) != null) {
                         System.out.println("[Servidor] " + message);
-                        System.out.print("[Você] ");
+                        System.out.print("");  // deixa o prompt limpo para digitar
                     }
                 } catch (IOException e) {
                     System.out.println("Conexão encerrada pelo servidor.");
@@ -39,7 +39,7 @@ public class Cliente {
             receiver.start();
 
             while (true) {
-                System.out.print("[Você] ");
+                // Sem prefixo [Você], só um prompt simples
                 String message = scanner.nextLine();
 
                 if (message.equalsIgnoreCase("sair")) {
@@ -47,7 +47,7 @@ public class Cliente {
                     break;
                 }
 
-                out.println(message);  // envia mensagem para o servidor
+                out.println(message);
             }
 
         } catch (IOException e) {

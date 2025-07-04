@@ -29,7 +29,7 @@ public class Servidor {
                 try {
                     while ((message = in.readLine()) != null) {
                         System.out.println("[Cliente] " + message);
-                        System.out.print("[Você] ");
+                        System.out.print(""); // prompt limpo para digitar
                     }
                 } catch (IOException e) {
                     System.out.println("Cliente desconectado.");
@@ -39,7 +39,7 @@ public class Servidor {
             receiver.start();
 
             while (true) {
-                System.out.print("[Você] ");
+                // Sem prefixo [Você], só um prompt simples
                 String response = scanner.nextLine();
 
                 if (response.equalsIgnoreCase("sair")) {
@@ -47,7 +47,7 @@ public class Servidor {
                     break;
                 }
 
-                out.println(response);  // envia resposta para cliente
+                out.println(response);
             }
 
         } catch (IOException e) {
