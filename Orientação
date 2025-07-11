@@ -11,6 +11,7 @@ Com relação ao código, para ler mensagens recebidas, utilizamos o BufferedRea
 
 Thread receiver 
 Como o envio e o recebimento de mensagens acontecem ao mesmo tempo, usamos uma Thread separada para escutar as mensagens que chegam sem travar o envio. 
+- A Thread receiver é um objeto da classe Thread. 
 - A Thread receiver funciona em paralelo ao restante do programa. 
 - Ela fica escutando continuamente novas mensagens, enquanto o usuário pode continuar digitando.
 
