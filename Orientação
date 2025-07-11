@@ -1,19 +1,26 @@
-Neste projeto, implementamos um chat de texto simples utilizando a linguagem Java, onde um cliente se conecta a um servidor e ambos podem trocar mensagens em tempo real. 
+Neste projeto, implementamos um chat de texto simples utilizando a linguagem Java, 
+onde um cliente se conecta a um servidor e ambos podem trocar mensagens em tempo real. 
 
-O sistema é baseado em conceitos fundamentais de rede, entrada/saída de dados e programação concorrente.
+O sistema é baseado em conceitos fundamentais de rede, entrada/saída de dados e 
+programação concorrente.
 
-Um socket é o ponto de comunicação entre dois computadores. Ele permite que programas em máquinas diferentes possam enviar e receber dados pela rede.
+Um socket é o ponto de comunicação entre dois computadores. Ele permite que programas 
+em máquinas diferentes possam enviar e receber dados pela rede.
 
 BufferedReader
-Com relação ao código, para ler mensagens recebidas, utilizamos o BufferedReader, que é uma classe eficiente para ler textos linha por linha. 
-- Ele transforma os dados recebidos pela rede (fluxo de bytes) em linhas de texto que o programa pode processar. 
+Com relação ao código, para ler mensagens recebidas, utilizamos o BufferedReader, que 
+é uma classe eficiente para ler textos linha por linha. 
+- Ele transforma os dados recebidos pela rede (fluxo de bytes) em linhas de texto que 
+o programa pode processar. 
 - Permite que o chat exiba as mensagens recebidas do outro lado da conversa.
 
 Thread receiver 
-Como o envio e o recebimento de mensagens acontecem ao mesmo tempo, usamos uma Thread separada para escutar as mensagens que chegam sem travar o envio. 
+Como o envio e o recebimento de mensagens acontecem ao mesmo tempo, usamos uma Thread 
+separada para escutar as mensagens que chegam sem travar o envio. 
 - A Thread receiver é um objeto da classe Thread. 
 - A Thread receiver funciona em paralelo ao restante do programa. 
-- Ela fica escutando continuamente novas mensagens, enquanto o usuário pode continuar digitando.
+- Ela fica escutando continuamente novas mensagens, enquanto o usuário pode continuar 
+digitando.
 
 Comando "sair"
 Para permitir que o usuário saia da conversa de forma controlada, incluímos o comando "sair":
